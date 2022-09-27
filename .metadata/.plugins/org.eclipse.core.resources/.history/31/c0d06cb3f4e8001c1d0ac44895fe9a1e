@@ -1,0 +1,15 @@
+package POS.Control;
+
+import java.util.List;
+import org.springframework.ui.Model;
+import POS.Model.*;
+
+public class TestContollClass {
+	public String test(Model model,AccountInfoClass aAccountInfo)
+	{
+		List<AccountUnitClass> accountList = aAccountInfo.selectAll();		
+		model.addAttribute("accounts",accountList);
+		return "test";
+	}
+
+}

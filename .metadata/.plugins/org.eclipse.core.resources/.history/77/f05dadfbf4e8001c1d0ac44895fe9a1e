@@ -1,0 +1,25 @@
+package POS.Control;
+
+import java.util.List;
+import org.springframework.ui.Model;
+import POS.Model.*;
+
+public class TestContolClass {
+	public String test(Model model,AccountInfoClass aAccountInfo)
+	{
+		List<AccountUnitClass> accountList = aAccountInfo.selectAll();		
+		model.addAttribute("accounts",accountList);
+		return "test";
+	}
+	public String item_test(Model model,aItemInfoClass aItemInfo)
+	{
+		if(aItemInfo.getItem(2)==null) aItemInfo.addItem(new ItemUnitClass("과자",2,1200,0));
+		if(aItemInfo.getItem(3)==null) aItemInfo.addItem(new ItemUnitClass("과자",3,1200,0));
+		
+		List<ItemUnitClass> ItemList = aItemInfo.selectAll();		
+		model.addAttribute("Items",ItemList);
+		aItemInfo.deleteItem(new ItemUnitClass("",3,0,0));
+		return "item_test";
+	}
+
+}

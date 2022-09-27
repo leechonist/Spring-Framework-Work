@@ -1,0 +1,12 @@
+package POS;
+
+public class pair {
+	public String first;
+	public String second;
+	public pair(String aFirst,String aSecond)
+	{
+		first = aFirst;
+		second = aSecond;
+	}
+	
+}

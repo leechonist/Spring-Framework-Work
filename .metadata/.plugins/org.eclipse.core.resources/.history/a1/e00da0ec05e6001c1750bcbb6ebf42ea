@@ -1,0 +1,36 @@
+package POS.Model;
+
+import java.time.LocalDateTime;
+
+public class SaleUnitClass {
+	private int mSaleID;
+	private int mItemID;
+	private int mCount;
+	private LocalDateTime mDate;
+	public SaleUnitClass(int aSaleId,int aItemId,int aCount,LocalDateTime aDate)
+	{
+		this.mSaleID = aSaleId;
+		this.mItemID = aItemId;
+		this.mCount =aCount;
+		this.mDate = aDate;
+	}
+	
+	//setter
+	public void setSaleID(int aSaleID)
+	{
+		this.mSaleID = aSaleID;
+	}
+	public void setItemID(int aItemID)
+	{
+		this.mItemID = aItemID;
+	}
+	public void setCount(int aCount)
+	{
+		this.mCount = aCount;
+	}
+	public void setDate(LocalDateTime aDate)
+	{
+		this.mDate = aDate;
+	}
+	
+}

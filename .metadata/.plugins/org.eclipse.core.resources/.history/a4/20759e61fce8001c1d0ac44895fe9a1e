@@ -1,0 +1,155 @@
+package POS.Control;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import javax.servlet.http.HttpSession;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import POS.Model.*;
+
+public class StockControlClass {
+	public String stock(ItemInfoClass aItemInfo,Model model,HttpSession session)
+	{
+		List<ItemUnitClass> itemList = aItemInfo.selectAll();
+		model.addAttribute("Items",itemList);
+		return "stock";
+	}
+	public String stockchange(String aItemID,ItemInfoClass aItemInfo,Model model,HttpSession session)
+	{
+		if(aItemID.equals("")) return stock(aItemInfo,model,session);
+		ItemUnitClass item = aItemInfo.getItem(Integer.parseInt(aItemID));
+		
+		model.addAttribute("itemname", item.getName());
+		model.addAttribute("itemprice", item.getPrice());
+		model.addAttribute("itemcount", item.getCount());
+		model.addAttribute("itemID", item.getId());
+		
+		return "stockchange";
+	}
+	public String processStockchange(String aCount,String aDesc,String aItemID,String aValue,ItemInfoClass aItemInfo,StockInfoClass aStockInfo,Model model,HttpSession session)
+	{
+		int count = Integer.parseInt(aCount);
+		LocalDateTime LDT = LocalDateTime.now();
+		ItemUnitClass item = aItemInfo.getItem(Integer.parseInt(aItemID));
+		
+		if(aValue.equals("취소") || item==null) return stock(model,session);
+		if(item.getCount()+count<0) count=-item.getCount();
+		aStockInfo.addStock(new StockUnitClass(item.getId(),count,LDT,aDesc));
+		aItemInfo.updateItem(item,new ItemUnitClass(item.getName(),item.getId(),item.getPrice(),count+item.getCount()));
+		return stock(model,session);
+	}
+	public String checksaleInit(SaleInfoClass aSaleInfo,Model model,HttpSession session)
+	{
+		session.setAttribute("saleID",aSaleInfo.getSaleID());
+		return checksale(aSaleInfo,model,session);
+	}
+	public String checksale(SaleInfoClass aSaleInfo,Model model, HttpSession session)
+	{
+		int saleID = 0,i=0,size=0;
+		saleID = (int)session.getAttribute("saleID");
+		SaleUnitClass sale = aSaleInfo.getSaleInfo(saleID);
+		List<SaleItemUnitClass> SaleItemList= saleInfo.selectSale(saleID);
+		String head="", content="";
+		List<String> Texts=new ArrayList<String>();
+		ItemUnitClass item=null;
+		SaleItemUnitClass saleItem=null;
+		size = SaleItemList.size();
+		if(saleID != 0 )head = "판매 ID : " + sale.getSaleID() + " 판매 방식 : " + (sale.getSale_method()==1?"카드 거래":"현금거래") +  " 판매 총 액 : " + sale.getTotal_price()+" 원 판매 일자: " + sale.getDate();
+		else if(saleID == 0) head = "거래가 없습니다!";
+		for(i=0;i<size;i++)
+		{
+			saleItem = SaleItemList.get(i);
+			item = itemInfo.getItem(saleItem.getItemID());
+			content=item.getName()+" : "+saleItem.getCount()+"개 ("+item.getPrice()+"원, 총"+item.getPrice()*saleItem.getCount()+")";
+			Texts.add(content);
+		}
+		model.addAttribute("head", head);
+		model.addAttribute("texts", Texts);
+		return "checksale";
+	}
+	@PostMapping(value="checksale.do")
+	public String doChecksale(
+			@RequestParam(value="value",defaultValue="")String aValue,
+			Model model,HttpSession session)
+	{
+		int	saleID = (int)session.getAttribute("saleID");
+		if(aValue.equals("환불")) {
+			int size=0,i=0;
+			SaleUnitClass sale = saleInfo.getSaleInfo(saleID);
+			List<SaleItemUnitClass> SaleItemList= saleInfo.selectSale(saleID);
+			String head="", content="";
+			List<String> Texts=new ArrayList<String>();
+			ItemUnitClass item=null;
+			SaleItemUnitClass saleItem=null;
+			size = SaleItemList.size();
+			head = "판매 ID : " + sale.getSaleID() + " 판매 방식 : " + (sale.getSale_method()==1?"카드 거래":"현금거래") +  " 판매 총 액 : " + sale.getTotal_price()+" 원 판매 일자: " + sale.getDate();
+			for(i=0;i<size;i++)
+			{
+				saleItem = SaleItemList.get(i);
+				item = itemInfo.getItem(saleItem.getItemID());
+				content=item.getName()+" : "+saleItem.getCount()+"개 ("+item.getPrice()+"원, 총"+item.getPrice()*saleItem.getCount()+")";
+				Texts.add(content);
+			}
+			model.addAttribute("head", head);
+			model.addAttribute("texts", Texts);
+			model.addAttribute("items",SaleItemList);
+			
+			return "refund";
+		}
+		else if(aValue.equals("메인")) return "index";
+		else if(aValue.equals("다음 거래")) 
+		{
+			saleID = (saleInfo.getNextSaleID(saleID)==0)?saleID:saleInfo.getNextSaleID(saleID);
+		}
+		else if(aValue.equals("이전 거래")) 
+		{
+			saleID = (saleInfo.getPrevSaleID(saleID)==0)?saleID:saleInfo.getPrevSaleID(saleID);
+		}
+		session.setAttribute("saleID",saleID);
+		return checksale(model,session);
+	}
+	@PostMapping(value="refund.do")
+	public String refundProcess(
+			@RequestParam(value="type",defaultValue="")String aType,
+			@RequestParam(value="Count",defaultValue="")String[] aCount,
+			Model model,HttpSession session)
+	{
+		List<SaleItemUnitClass> saleItem = saleInfo.selectSale((int)session.getAttribute("saleID"));
+		int i=0,size= saleItem.size(),count=0,price=0,saleID = (int)session.getAttribute("saleID");
+		SaleItemUnitClass item = null;
+		SaleUnitClass sale = saleInfo.getSaleInfo(saleID);
+		LocalDateTime LDT = LocalDateTime.now();
+		if(aType.equals("취소")) return checksale(model,session);
+		for(i=0;i<size;i++)
+		{
+			item = saleItem.get(i);
+			count = Integer.parseInt(aCount[i]);
+			if(count==0)
+			{
+				saleInfo.deleteSaleItem(item);
+			}
+			else if(item.getCount()!= count)
+			{
+				price += itemInfo.getItem(item.getItemID()).getPrice()*(item.getCount()-count);
+				saleInfo.updateSaleItem(item, new SaleItemUnitClass(item.getSaleID(),item.getItemID(),count));
+				stockInfo.addStock(new StockUnitClass(item.getItemID(),count,LDT,"환불"));
+			}
+		}
+		if(saleInfo.selectSale(saleID).size()==0) 
+		{
+			saleInfo.deleteSale(sale);
+			saleID = (saleInfo.getNextSaleID(saleID)==0)?saleInfo.getPrevSaleID(saleID):saleInfo.getNextSaleID(saleID);
+			session.setAttribute("saleID",saleID);
+			
+		}
+		else
+		{			
+			saleInfo.updateSale(sale,new SaleUnitClass(sale.getSaleID(),sale.getSale_method(),sale.getDate(),sale.getTotal_price()-price));
+		}
+		return checksale(model,session);
+	}
+
+}

@@ -1,0 +1,15 @@
+package POS;
+
+public class pair {
+	public String first;
+	public String second;
+	public pair(String aFirst,String aSecond)
+	{
+		first = aFirst;
+		second = aSecond;
+	}
+	public static pair make_pair(String aFirst,String aSecond)
+	{
+		return new pair(aFirst,aSecond);
+	}
+}

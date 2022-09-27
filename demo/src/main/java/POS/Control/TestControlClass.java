@@ -1,0 +1,55 @@
+package POS.Control;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import org.springframework.ui.Model;
+
+import POS.Model.*;
+
+public class TestControlClass {
+	public String test(Model model,AccountInfoClass aAccountInfo)
+	{
+		List<AccountUnitClass> accountList = aAccountInfo.selectAll();		
+		model.addAttribute("accounts",accountList);
+		return "test";
+	}
+	public String item_test(Model model,ItemInfoClass aItemInfo)
+	{
+		if(aItemInfo.getItem(2)==null) aItemInfo.addItem(new ItemUnitClass("과자",2,1200,0));
+		if(aItemInfo.getItem(3)==null) aItemInfo.addItem(new ItemUnitClass("과자",3,1200,0));
+		
+		List<ItemUnitClass> ItemList = aItemInfo.selectAll();		
+		model.addAttribute("Items",ItemList);
+		aItemInfo.deleteItem(new ItemUnitClass("",3,0,0));
+		return "item_test";
+	}
+
+	public String sale_test(Model model,SaleInfoClass aSaleInfo)
+	{
+		SaleItemUnitClass SIUC;
+		SIUC = aSaleInfo.getSaleItem(1,1);
+		if(SIUC==null) aSaleInfo.addSaleItem(new SaleItemUnitClass(1,1,2));
+		
+		SIUC = aSaleInfo.getSaleItem(2,1);
+		if(SIUC==null) aSaleInfo.addSaleItem(new SaleItemUnitClass(2,1,2));
+		
+		SIUC = aSaleInfo.getSaleItem(2,2);
+		if(SIUC==null) aSaleInfo.addSaleItem(new SaleItemUnitClass(2,2,5));
+		
+		List<SaleItemUnitClass> SaleItemList = aSaleInfo.selectAll();		
+		model.addAttribute("SaleItems",SaleItemList);
+		
+		aSaleInfo.deleteSaleItem(new SaleItemUnitClass(2,2,5));
+		aSaleInfo.deleteSaleItem(new SaleItemUnitClass(2,1,5));
+		return "sale_test";
+	}
+	public String stock_test(Model model,StockInfoClass aStockInfo)
+	{
+		StockUnitClass SU = new StockUnitClass(2,5,LocalDateTime.now(),"그냥");
+		aStockInfo.addStock(SU);
+		List<StockUnitClass> StockList = aStockInfo.selectAll();		
+		model.addAttribute("Stocks",StockList);
+		aStockInfo.deleteStock(SU);
+		return "stock_test";
+	}
+}

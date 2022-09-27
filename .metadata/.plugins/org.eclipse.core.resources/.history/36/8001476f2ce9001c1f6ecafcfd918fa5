@@ -1,0 +1,8 @@
+package POS.Control;
+
+public class AnalyzeControlClass {
+	public String Analyze()
+	{
+		return "Analyze";
+	}
+}

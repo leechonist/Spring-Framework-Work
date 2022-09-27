@@ -1,0 +1,53 @@
+package POS.Model;
+
+public class ItemUnitClass {
+	private String mName;
+	private int mId;
+	private int mPrice;
+	private int mCount;
+	
+	public ItemUnitClass(String aName,int aId,int aPrice,int aCount)
+	{
+		this.mName = aName;
+		this.mId = aId;
+		this.mPrice = aPrice;
+		this.mCount = aCount;
+	}
+	
+	//setter
+	public void setName(String aName)
+	{
+		this.mName = aName;
+	}
+	public void setId(int aId)
+	{
+		this.mId = aId;
+	}
+	public void setPrice(int aPrice)
+	{
+		this.mPrice = aPrice;
+	}
+	public void setCount(int aCount)
+	{
+		this.mCount = aCount;
+	}
+	
+	//getter
+	public String getName()
+	{
+		return this.mName;
+	}
+	public int getId()
+	{
+		return this.mId;
+	}
+	public int getPrice()
+	{
+		return this.mPrice;
+	}
+	public int getCount()
+	{
+		return this.mCount;
+	}	
+	
+}

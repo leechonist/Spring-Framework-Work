@@ -1,0 +1,50 @@
+package POS.Control;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.ui.Model;
+
+import POS.pair;
+import POS.Model.*;
+
+public class AnalyzeControlClass {
+	@Autowired 
+	private AnalyzeInfoClass mAnalyzeInfo;
+	
+	public String analyze()
+	{
+		return "analyze";
+	}
+	public String analyzing(String aValue, String aType,ItemInfoClass aItemInfo,Model model)
+	{
+		int i=0,size=0,id=0;
+		List<pair> list = new ArrayList<pair>();
+		if(aValue.equals("메인")) return "index";
+		else if(aType.equals("최다 판매 제품"))
+		{
+			list = mAnalyzeInfo.getMostSaleItem();
+			size = list.size();
+			model.addAttribute("head","최다 판매 제품 Top "+size);
+		}
+		else if(aValue.equals("")) return "analyze";
+		else if(aType.equals("판매량"))
+		{
+			list = mAnalyzeInfo.getTotalSale(aValue);
+			size = list.size();
+			model.addAttribute("head","최다 판매량 제품 Top "+size);
+		}
+		else if(aType.equals("판매액"))
+		{
+			list = mAnalyzeInfo.getTotalPrice(aValue);
+			size = list.size();
+			model.addAttribute("head","최다 판매액 제품 Top "+size);
+			
+		}
+
+		model.addAttribute("pairs",list);
+		return "analyzepage";
+	}
+
+}

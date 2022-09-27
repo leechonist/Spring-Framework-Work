@@ -1,0 +1,74 @@
+package POS.Model;
+
+import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import javax.sql.DataSource;
+
+import org.springframework.jdbc.core.JdbcTemplate;
+
+public class StockInfoClass {
+	private JdbcTemplate mJdbcTemplate;
+	public StockInfoClass(DataSource dataSource)
+	{
+		this.mJdbcTemplate = new JdbcTemplate(dataSource);
+	}
+	
+	public List<StockUnitClass> selectAll()
+	{
+		List<StockUnitClass> results = mJdbcTemplate.query("select * from STOCK_DATA",
+				(ResultSet rs,int rowNum)->{
+					StockUnitClass Stock = new StockUnitClass(rs.getInt("item_id"),rs.getInt("count"),rs.getTimestamp("stock_date").toLocalDateTime(),rs.getString("DSC"));
+					return Stock;
+				});
+		return results;
+	}
+	public boolean addStock(StockUnitClass aStock)
+	{
+		SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); //나중에 Init 함수 만들어서 처리하기
+		String sql = "insert into stock_data(item_id,count,stock_date,dsc) value ('";
+		sql += aStock.getItemid()+"', '"+aStock.getCount()+"', '"+format1.format(aStock.getDate())+"','"+aStock.getDesc()+"')";
+		mJdbcTemplate.execute(sql);
+		
+		return true;
+	}
+	public boolean updateStock(StockUnitClass aTarget,StockUnitClass aContent)
+	{
+		SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); //ㄴㄴ
+		String sql = "update stock_data set ";
+		sql += "item_id = '"+aContent.getItemid();
+		sql += "', count = '"+aContent.getCount();
+		sql += "', stock_date = '"+aContent.getDate();
+		sql += "where Item_id = '"+aTarget.getItemid()+"' AND date = '"+format1.format(aTarget.getDate())+"'";
+		mJdbcTemplate.execute(sql);
+		mJdbcTemplate.update(sql,)
+		return true;
+		
+		
+		/*
+        String sql = "insert into `booking` (`room_id`, `user_id`, `check_in`, `check_out`, `number_of_people`, `total_price`) values (?, ?, ?, ?, ?, ?)";
+        jdbcTemplate.update(sql, booking.getRoomId(), booking.getUserId(), booking.getCheckIn(),
+                booking.getCheckOut(), booking.getNumberOfPeople(), booking.getTotalPrice());
+		 */
+	}
+	public StockUnitClass getStockItem(int aItemID, LocalDateTime aDate)
+	{
+		SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); //ㄴㄴ
+		String sql = "select * from stock_data where tiem_id = "+aItemID+" AND stock_date = "+format1.format(aDate());
+		List<StockUnitClass> results = mJdbcTemplate.query(sql,
+				(ResultSet rs,int rowNum)->{
+					StockUnitClass Sale = new StockUnitClass(rs.getInt("item_id"),rs.getInt("count"),rs.getTimestamp("sale_date").toLocalDateTime(),rs.getString("DSC"));
+					return Sale;
+				});
+		if(results.size()==0) return null;
+		else return results.get(0);
+	}
+	public boolean deleteStock(StockUnitClass aTarget)
+	{
+		String sql = "delete from stock_data where item_id = "+aTarget.getItemid()+" AND stock_date = "+aTarget.getDate();
+		mJdbcTemplate.execute(sql);
+		return true;
+	}
+}

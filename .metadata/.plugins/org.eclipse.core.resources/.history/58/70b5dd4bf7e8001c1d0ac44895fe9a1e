@@ -1,0 +1,357 @@
+package POS.Control;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import POS.Model.AccountInfoClass;
+import POS.Model.AccountUnitClass;
+import POS.Model.*;
+@Controller
+public class SystemClass {
+	@Autowired
+	private AccountInfoClass accountInfo;
+	@Autowired
+	private ItemInfoClass itemInfo;
+	@Autowired
+	private SaleInfoClass saleInfo;
+	@Autowired
+	private StockInfoClass stockInfo;
+	@Autowired
+	private TestContolClass mTestControl;
+	@Autowired
+	private AccountControlClass mAccountControl;
+	private AccountUnitClass mAccount;
+	
+	@GetMapping(value="/test")
+	public String test(Model model)
+	{
+		return mTestControl.test(model, accountInfo);
+	}
+	@GetMapping(value="/item_test")
+	public String item_test(Model model)
+	{
+		return mTestControl.item_test(model, itemInfo);
+	}
+	@GetMapping(value="/sale_test")
+	public String sale_test(Model model)
+	{
+		return mTestControl.sale_test(model, saleInfo);
+	}
+	@GetMapping(value="/stock_test")
+	public String stock_test(Model model)
+	{
+		return mTestControl.stock_test(model, stockInfo);
+	}
+
+	@GetMapping(value="/main")
+	public String main(Model model)
+	{
+		
+		return "main";
+	}
+	@GetMapping(value="/login")
+	public String login(Model model)
+	{
+		return mAccountControl.login(model);
+	}
+	@PostMapping(value="logincheck.do")
+	public String loginCheck(
+			@RequestParam(value="strID",defaultValue="")String aID,
+			@RequestParam(value="strPW",defaultValue="")String aPW,	
+			@RequestParam(value="value",defaultValue="")String aValue
+			,Model model,HttpSession session)
+	{
+		return mAccountControl.loginCheck(aID, aPW, aValue, mAccount, accountInfo, model, session);
+	}
+	@GetMapping(value="/signin")
+	public String signin(Model model)
+	{
+		return mAccountControl.signin(model);
+	}
+	@PostMapping(value="signincheck.do")
+	public String signinCheck(
+			@RequestParam(value="strName",defaultValue="")String aName,
+			@RequestParam(value="strID",defaultValue="")String aID,
+			@RequestParam(value="strPW",defaultValue="")String aPW,
+			@RequestParam(value="strCheck",defaultValue="")String aCheck,
+			@RequestParam(value="value",defaultValue="")String aValue
+			,Model model,HttpSession session)
+	{
+		return mAccountControl.signinCheck(aName, aID, aPW, aCheck, aValue, mAccount, accountInfo, model, session);
+	}
+	@GetMapping(value="/sale")
+	public String sale(Model model,HttpSession session)
+	{
+		String name = (String)session.getAttribute("name");
+		if(name==null) return login(model);
+		List<ItemUnitClass> itemList = itemInfo.selectAll();
+		model.addAttribute("Items",itemList);
+		return "sale";		
+	}
+	@GetMapping(value="/saleresult")
+	public String SaleProcess(Model model)
+	{
+		return main(model);
+	}
+	@PostMapping(value="/saleresult")
+	public String saleresult(
+			@RequestParam(value="Count",defaultValue="")String[] aArray,			
+			@RequestParam(value="method",defaultValue="")String aMethod,
+			Model model, HttpSession session)
+	{
+		int method=0,i=0,size = aArray.length,saleID = saleInfo.getSaleID()+1,total=0,value=0;
+		List<SaleItemUnitClass> saleItemList = new ArrayList<SaleItemUnitClass>();
+		LocalDateTime LDT=LocalDateTime.now();
+		System.out.println(size);
+		for(i=0;i<size;i++)
+		{
+			value = Integer.parseInt(aArray[i]);
+			if(value > itemInfo.getItem(i+1).getCount()) return "salefail";
+			else if(value==0) continue;
+			else {
+				saleItemList.add(new SaleItemUnitClass(saleID,i+1,value));
+				total+=value*itemInfo.getItem(i+1).getPrice();
+			}
+		}
+		if(saleItemList.size()==0) return "salefail";
+		method = aMethod.equals("카드 결제")?1:2;
+		saleInfo.beginSale(new SaleUnitClass(saleID,method,LDT,total));
+		size = saleItemList.size();
+		for(i=0;i<size;i++)
+		{
+			ItemUnitClass item = itemInfo.getItem(saleItemList.get(i).getItemID());
+			saleInfo.addSaleItem(saleItemList.get(i));
+			itemInfo.updateItem(item,new ItemUnitClass(item.getName(),item.getId(),item.getPrice(),item.getCount()-saleItemList.get(i).getCount()));
+			stockInfo.addStock(new StockUnitClass(item.getId(),-saleItemList.get(i).getCount(),LDT,"판매"));
+		}
+		saleID = saleInfo.getSaleID();i=0;size=0;
+		SaleUnitClass sale = saleInfo.getSaleInfo(saleID);
+		List<SaleItemUnitClass> SaleItemList= saleInfo.selectSale(saleID);
+		String head="", content="";
+		List<String> Texts=new ArrayList<String>();
+		ItemUnitClass item=null;
+		SaleItemUnitClass saleItem=null;
+		size = SaleItemList.size();
+		head = "판매 ID : " + sale.getSaleID() + " 판매 방식 : " + (sale.getSale_method()==1?"카드 거래":"현금거래") +  " 판매 총 액 : " + sale.getTotal_price()+" 원 판매 일자: " + sale.getDate();
+		for(i=0;i<size;i++)
+		{
+	
+			saleItem = SaleItemList.get(i);
+			item = itemInfo.getItem(saleItem.getItemID());
+			content=item.getName()+" : "+saleItem.getCount()+"개 ("+item.getPrice()+"원, 총"+item.getPrice()*saleItem.getCount()+")";
+			Texts.add(content);
+		}
+		model.addAttribute("head", head);
+		model.addAttribute("texts", Texts);
+		return "saleresult";
+	}
+	@GetMapping(value="/salefail")
+	public String salefail(Model model)
+	{
+		return "salefail";
+	}
+	@GetMapping(value="/logout")
+	public String logout(Model model,HttpSession session)
+	{
+		return mAccountControl.logout(model,session);
+	}
+	@GetMapping(value="/stock")
+	public String stock(Model model,HttpSession session)
+	{
+		String name = (String)session.getAttribute("name");
+		if(name==null) return login(model);
+		List<ItemUnitClass> itemList = itemInfo.selectAll();
+		model.addAttribute("Items",itemList);
+		return "stock";
+	}
+	@PostMapping(value="/stockchange")
+	public String stockchange(			
+			@RequestParam(value="itemid",defaultValue="")String aItemID,
+			Model model,HttpSession session)
+	{
+		if(aItemID.equals("")) return stock(model,session);
+		ItemUnitClass item = itemInfo.getItem(Integer.parseInt(aItemID));
+		
+		model.addAttribute("itemname", item.getName());
+		model.addAttribute("itemprice", item.getPrice());
+		model.addAttribute("itemcount", item.getCount());
+		model.addAttribute("itemID", item.getId());
+		
+		return "stockchange";
+	}
+	@PostMapping(value="stockchange.do")
+	public String processStockchange(
+			@RequestParam(value="Count",defaultValue="")String aCount,
+			@RequestParam(value="Description",defaultValue="")String aDesc,
+			@RequestParam(value="itemid",defaultValue="")String aItemID,
+			@RequestParam(value="value",defaultValue="")String aValue,
+			Model model,HttpSession session)
+	{
+		int count = Integer.parseInt(aCount);
+		LocalDateTime LDT = LocalDateTime.now();
+		ItemUnitClass item = itemInfo.getItem(Integer.parseInt(aItemID));
+		
+		if(aValue.equals("취소") || item==null) return stock(model,session);
+		if(item.getCount()+count<0) count=-item.getCount();
+		stockInfo.addStock(new StockUnitClass(item.getId(),count,LDT,aDesc));
+		itemInfo.updateItem(item,new ItemUnitClass(item.getName(),item.getId(),item.getPrice(),count+item.getCount()));
+		return stock(model,session);
+	}
+	@GetMapping(value="/checksale")
+	public String checksaleInit(Model model,HttpSession session)
+	{
+		session.setAttribute("saleID",saleInfo.getSaleID());
+		return checksale(model,session);
+	}
+	public String checksale(Model model, HttpSession session)
+	{
+		String name = (String)session.getAttribute("name");
+		if(name==null) return login(model);	
+		int saleID = 0,i=0,size=0;
+		saleID = (int)session.getAttribute("saleID");
+		SaleUnitClass sale = saleInfo.getSaleInfo(saleID);
+		List<SaleItemUnitClass> SaleItemList= saleInfo.selectSale(saleID);
+		String head="", content="";
+		List<String> Texts=new ArrayList<String>();
+		ItemUnitClass item=null;
+		SaleItemUnitClass saleItem=null;
+		size = SaleItemList.size();
+		if(saleID != 0 )head = "판매 ID : " + sale.getSaleID() + " 판매 방식 : " + (sale.getSale_method()==1?"카드 거래":"현금거래") +  " 판매 총 액 : " + sale.getTotal_price()+" 원 판매 일자: " + sale.getDate();
+		else if(saleID == 0) head = "거래가 없습니다!";
+		for(i=0;i<size;i++)
+		{
+			saleItem = SaleItemList.get(i);
+			item = itemInfo.getItem(saleItem.getItemID());
+			content=item.getName()+" : "+saleItem.getCount()+"개 ("+item.getPrice()+"원, 총"+item.getPrice()*saleItem.getCount()+")";
+			Texts.add(content);
+		}
+		model.addAttribute("head", head);
+		model.addAttribute("texts", Texts);
+		return "checksale";
+	}
+	@PostMapping(value="checksale.do")
+	public String doChecksale(
+			@RequestParam(value="value",defaultValue="")String aValue,
+			Model model,HttpSession session)
+	{
+		int	saleID = (int)session.getAttribute("saleID");
+		if(aValue.equals("환불")) {
+			int size=0,i=0;
+			SaleUnitClass sale = saleInfo.getSaleInfo(saleID);
+			List<SaleItemUnitClass> SaleItemList= saleInfo.selectSale(saleID);
+			String head="", content="";
+			List<String> Texts=new ArrayList<String>();
+			ItemUnitClass item=null;
+			SaleItemUnitClass saleItem=null;
+			size = SaleItemList.size();
+			head = "판매 ID : " + sale.getSaleID() + " 판매 방식 : " + (sale.getSale_method()==1?"카드 거래":"현금거래") +  " 판매 총 액 : " + sale.getTotal_price()+" 원 판매 일자: " + sale.getDate();
+			for(i=0;i<size;i++)
+			{
+				saleItem = SaleItemList.get(i);
+				item = itemInfo.getItem(saleItem.getItemID());
+				content=item.getName()+" : "+saleItem.getCount()+"개 ("+item.getPrice()+"원, 총"+item.getPrice()*saleItem.getCount()+")";
+				Texts.add(content);
+			}
+			model.addAttribute("head", head);
+			model.addAttribute("texts", Texts);
+			model.addAttribute("items",SaleItemList);
+			
+			return "refund";
+		}
+		else if(aValue.equals("메인")) return "index";
+		else if(aValue.equals("다음 거래")) 
+		{
+			saleID = (saleInfo.getNextSaleID(saleID)==0)?saleID:saleInfo.getNextSaleID(saleID);
+		}
+		else if(aValue.equals("이전 거래")) 
+		{
+			saleID = (saleInfo.getPrevSaleID(saleID)==0)?saleID:saleInfo.getPrevSaleID(saleID);
+		}
+		session.setAttribute("saleID",saleID);
+		return checksale(model,session);
+	}
+	@PostMapping(value="refund.do")
+	public String refundProcess(
+			@RequestParam(value="type",defaultValue="")String aType,
+			@RequestParam(value="Count",defaultValue="")String[] aCount,
+			Model model,HttpSession session)
+	{
+		List<SaleItemUnitClass> saleItem = saleInfo.selectSale((int)session.getAttribute("saleID"));
+		int i=0,size= saleItem.size(),count=0,price=0,saleID = (int)session.getAttribute("saleID");
+		SaleItemUnitClass item = null;
+		SaleUnitClass sale = saleInfo.getSaleInfo(saleID);
+		LocalDateTime LDT = LocalDateTime.now();
+		if(aType.equals("취소")) return checksale(model,session);
+		for(i=0;i<size;i++)
+		{
+			item = saleItem.get(i);
+			count = Integer.parseInt(aCount[i]);
+			if(count==0)
+			{
+				saleInfo.deleteSaleItem(item);
+			}
+			else if(item.getCount()!= count)
+			{
+				price += itemInfo.getItem(item.getItemID()).getPrice()*(item.getCount()-count);
+				saleInfo.updateSaleItem(item, new SaleItemUnitClass(item.getSaleID(),item.getItemID(),count));
+				stockInfo.addStock(new StockUnitClass(item.getItemID(),count,LDT,"환불"));
+			}
+		}
+		if(saleInfo.selectSale(saleID).size()==0) 
+		{
+			saleInfo.deleteSale(sale);
+			saleID = (saleInfo.getNextSaleID(saleID)==0)?saleInfo.getPrevSaleID(saleID):saleInfo.getNextSaleID(saleID);
+			session.setAttribute("saleID",saleID);
+			
+		}
+		else
+		{			
+			saleInfo.updateSale(sale,new SaleUnitClass(sale.getSaleID(),sale.getSale_method(),sale.getDate(),sale.getTotal_price()-price));
+		}
+		return checksale(model,session);
+	}
+	@GetMapping(value="/editaccount")
+	public String editAccount(Model model,HttpSession session)
+	{
+		return mAccountControl.editAccount(model, session);
+	}
+	@PostMapping(value="editaccount.do")
+	public String processEditAccount(
+			@RequestParam(value="strName",defaultValue="")String aName,
+			@RequestParam(value="strID",defaultValue="")String aID,
+			@RequestParam(value="strPW",defaultValue="")String aPW,
+			@RequestParam(value="value",defaultValue="")String aValue
+			,Model model, HttpSession session)
+	{
+		AccountUnitClass account = accountInfo.getAccount(aID);
+		String str="";
+		if(aValue.equals("메인")) return "index";
+		if(!(mAccount.getId().equals(aID)) && (account!=null))
+		{
+			str="아이디가 중복되었습니다.";
+		}
+		else
+		{			
+			accountInfo.updateAccount(accountInfo.getAccount((String)session.getAttribute("id")),new AccountUnitClass(aName,aID,aPW,((String)session.getAttribute("position")).equals("직원")?1:2));
+			mAccount = accountInfo.getAccount(aID);
+			session.setAttribute("name", mAccount.getName());
+			session.setAttribute("id", mAccount.getId());
+			session.setAttribute("pw", mAccount.getPassword());
+			session.setAttribute("position", mAccount.getPosition()==1?"직원":"매니저");
+			str="변경이 완료되었습니다.";
+		}
+		model.addAttribute("Text",str);
+		
+		return "editaccount";
+	}
+	
+}

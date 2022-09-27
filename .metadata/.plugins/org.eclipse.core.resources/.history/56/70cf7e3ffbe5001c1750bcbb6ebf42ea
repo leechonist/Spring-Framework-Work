@@ -1,0 +1,19 @@
+package POS;
+
+import javax.sql.DataSource;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+public class AccountInfoClass {
+	private JdbcTemplate jdbcTemplate;
+	public AccountInfoClass(DataSource dataSource)
+	{
+		this.jdbcTemplate = new JdbcTemplate(dataSource);
+	}
+	public List<AccountUnit> selectAll()
+	{
+		List<AccountUnit> results = jdbcTemplate.query("select * from LOGINDATA",
+				(ResultSet rs,int rowNum)->{
+					AccountUnit
+				})
+	}
+}

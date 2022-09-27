@@ -1,0 +1,8 @@
+package POS;
+
+public class AccountUnitClass {
+	public AccountUnitClass(String name, String id,String pw,int position)
+	{
+		
+	}
+}

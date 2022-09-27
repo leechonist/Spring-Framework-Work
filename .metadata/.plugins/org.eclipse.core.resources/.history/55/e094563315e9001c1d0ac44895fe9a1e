@@ -1,0 +1,23 @@
+package POS.Control;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.http.HttpSession;
+import org.springframework.ui.Model;
+import POS.Model.*;
+
+public class EmployeeControlClass {
+	public String employee(AccountInfoClass aAccountInfo,Model model,HttpSession session)
+	{
+		List<String> positions = new ArrayList<String>();
+		List<AccountUnitClass> Accounts=aAccountInfo.selectAll();
+		int i=0,size=Accounts.size();
+		for(i=0;i<size;i++)
+		{
+			positions.add(Accounts.get(i).getPosition()==1?"직원":"관리자");
+		}
+		model.addAttribute("Accounts", Accounts);
+		model.addAttribute("positions",positions);
+		return "Employe";
+	}
+}

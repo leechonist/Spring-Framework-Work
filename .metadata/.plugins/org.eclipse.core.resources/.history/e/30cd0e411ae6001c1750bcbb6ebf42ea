@@ -1,0 +1,31 @@
+package POS.Model;
+
+import java.sql.ResultSet;
+import java.util.List;
+
+import javax.sql.DataSource;
+
+import org.springframework.jdbc.core.JdbcTemplate;
+
+public class ItemInfoClass {
+	private JdbcTemplate mJdbcTemplate;
+	public ItemInfoClass(DataSource dataSource)
+	{
+		this.mJdbcTemplate = new JdbcTemplate(dataSource);
+	}
+	
+	public List<ItemUnitClass> selectAll()
+	{
+		List<ItemUnitClass> results = mJdbcTemplate.query("select * from LOGIN_DATA orderby id asc",
+				(ResultSet rs,int rowNum)->{
+					ItemUnitClass Item = new ItemUnitClass(rs.getString("name"),rs.getInt("id"),rs.getInt("price"),rs.getInt("stock"));
+					return Item;
+				});
+		return results;
+	}
+
+}
+
+
+
+//public ItemUnitClass(String aName,int aId,int aPrice,int aCount)

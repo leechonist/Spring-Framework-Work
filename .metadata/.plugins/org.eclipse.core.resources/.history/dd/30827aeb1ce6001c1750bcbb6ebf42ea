@@ -1,0 +1,62 @@
+package POS.Model;
+
+import java.sql.ResultSet;
+import java.util.List;
+
+import javax.sql.DataSource;
+
+import org.springframework.jdbc.core.JdbcTemplate;
+
+public class SaleInfoClass {
+
+	private JdbcTemplate mJdbcTemplate;
+	public SaleInfoClass(DataSource dataSource)
+	{
+		this.mJdbcTemplate = new JdbcTemplate(dataSource);
+	}
+	
+	public List<SaleItemUnitClass> selectAll()
+	{
+		List<SaleItemUnitClass> results = mJdbcTemplate.query("select * from LOGIN_DATA",
+				(ResultSet rs,int rowNum)->{
+					SaleItemUnitClass Sale = new SaleItemUnitClass(rs.getInt("sale_id"),rs.getInt("item_id"),rs.getInt("count"));
+					return Sale;
+				});
+		return results;
+	}
+	public boolean addSale(ItemUnitClass aItem)
+	{
+		String sql = "insert into item_data(name,id,price,stock) value ('";
+		sql += aItem.getName()+"', '"+aItem.getId()+"', '"+aItem.getPrice()+"', "+aItem.getCount()+")";
+		mJdbcTemplate.execute(sql);
+		
+		return true;
+	}
+	public boolean updateSale(ItemUnitClass aTarget,ItemUnitClass aContent)
+	{
+		String sql = "update item_data set ";
+		sql += "name = '"+aContent.getName();
+		sql += "', id = '"+aContent.getId();
+		sql += "', price = '"+aContent.getPrice();
+		sql += "', stock = "+aContent.getCount();
+		sql += "where id = "+aTarget.getId();
+		mJdbcTemplate.execute(sql);
+		return true;
+	}
+	public ItemUnitClass getSale(int aId)
+	{
+		String sql = "select password from item_data where id = "+aId;
+		List<ItemUnitClass> ItemList  = mJdbcTemplate.query(sql,
+				(ResultSet rs,int rowNum)->{
+					return new ItemUnitClass(rs.getString("name"),rs.getInt("id"),rs.getInt("price"),rs.getInt("stock"));
+				});
+		if(ItemList.size()==0) return null;
+		else return ItemList.get(0);
+	}
+	public boolean deleteSale(ItemUnitClass aTarget)
+	{
+		String sql = "delete from Item_data where id = '"+aTarget.getId()+"'";
+		mJdbcTemplate.execute(sql);
+		return true;
+	}
+}

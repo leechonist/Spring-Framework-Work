@@ -1,0 +1,57 @@
+package POS.Model;
+
+import java.time.LocalDateTime;
+
+public class SaleUnitClass {
+	private int mSaleID;
+	private int mSale_method;
+	private LocalDateTime mDate;
+	private int mTotal_price;
+	
+	public SaleUnitClass(int aSaleId,int aSale_method,LocalDateTime aDdate,int aTotal_price)
+	{
+		this.mSaleID = aSaleId;
+		this.mSale_method = aSale_method;
+		this.mDate = aDate;
+		this.mTotal_price = aTotal_price;
+	}
+	
+	//setter
+	public void setSaleID(int aSaleID)
+	{
+		this.mSaleID = aSaleID;
+	}
+	public void setSale_method(int aSale_method)
+	{
+		this.mSale_method = aSale_method;
+	}
+	public void setDate(LocalDateTime aDate)
+	{
+		this.mDate = aDate;
+	}
+	public void setTotal_price(int aTotal_price)
+	{
+		this.mTotal_price = aTotal_price;
+	}
+	
+	//getter 
+	public int getSaleID(int aSaleID)
+	{
+		this.mSaleID = aSaleID;
+	}
+	public int getSale_method(int aSale_method)
+	{
+		this.mSale_method = aSale_method;
+	}
+	public LocalDateTime getDate(LocalDateTime aDate)
+	{
+		this.mDate = aDate;
+	}
+	public int getTotal_price(int aTotal_price)
+	{
+		this.mTotal_price = aTotal_price;
+	}
+	
+
+
+}

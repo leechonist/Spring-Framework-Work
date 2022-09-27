@@ -1,0 +1,21 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Pos 웹 페이지 로그인</title>
+</head>
+<body>
+	<a href="main" style="font-size:200%";>POS 웹 서비스</a>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	<a href="#">판매</a>&nbsp;
+	<a href="#">재고 관리</a>&nbsp;
+	<a href="#"> 거래 내역 확인</a>&nbsp;
+	<br><br><br><br>
+	<center>
+	로그인에 성공하였습니다!<br>
+	로그인 후 사용해주세요.<br>	
+	<button onclick="location='main'">확인</button>
+	</center>
+</body>
+</html>

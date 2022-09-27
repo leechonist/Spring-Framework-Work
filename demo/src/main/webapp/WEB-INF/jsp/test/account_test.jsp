@@ -1,0 +1,18 @@
+<%@ page contentType= "text/html; charset=utf-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!DOCTPYE html>
+<html>
+    <head> <meta charset="EUC-KR"></head>
+    <body>
+        <h1>Account test</h1>
+        <ul>
+            <c:forEach var = "account" items="${accounts}" varStatus="status">
+                <li> 
+                    ${account.name} : ${account.id}, ${account.password}, 
+                    <c:if test = "${account.position == 1}"> 직원 </c:if>
+                    <c:if test = "${account.position == 2}"> 매니저 </c:if>
+                </li>
+            </c:forEach>
+        </ul>
+    </body>
+</html>

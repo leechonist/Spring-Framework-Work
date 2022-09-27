@@ -1,0 +1,28 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Pos 웹 페이지</title>
+</head>
+	<body>		
+		<div style="float: left;">
+			<a href="main" style="font-size:200%;";>POS 웹 서비스</a>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<a href="sale">판매</a>&nbsp;
+			<a href="#">재고 관리</a>&nbsp;
+			<a href="#"> 거래 내역 확인</a>&nbsp;
+		</div>
+		<div style="float: right;">
+			<br>
+			<p1 style="text-align: right;"> <%=name%>님(<%=strPos%>)</p1>
+			<a href="#"> 개인 정보 수정</a>&nbsp;
+			<a href="#"> 로그아웃</a>&nbsp;
+		</div>
+		<BR><BR><BR><BR>
+		<center>
+			거래가 취소되었습니다.
+			<button onclick="location='main'">확인</button><BR><BR>
+		</center>
+	</body>
+</html>

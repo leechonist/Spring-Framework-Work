@@ -1,0 +1,27 @@
+package POS.Model;
+
+import java.sql.ResultSet;
+import java.util.List;
+
+import javax.sql.DataSource;
+
+import org.springframework.jdbc.core.JdbcTemplate;
+
+public class SaleInfoClass {
+
+	private JdbcTemplate mJdbcTemplate;
+	public SaleInfoClass(DataSource dataSource)
+	{
+		this.mJdbcTemplate = new JdbcTemplate(dataSource);
+	}
+	
+	public List<SaleUnitClass> selectAll()
+	{
+		List<SaleUnitClass> results = mJdbcTemplate.query("select * from LOGIN_DATA",
+				(ResultSet rs,int rowNum)->{
+					SaleUnitClass Sale = new SaleUnitClass(rs.getInt("sale_id"),rs.getInt("item_id"),rs.getInt("count"),rs.getTimestamp("sale_date").toLocalDateTime());
+					return Sale;
+				});
+		return results;
+	}
+}

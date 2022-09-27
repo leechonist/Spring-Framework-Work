@@ -1,0 +1,13 @@
+package POS.Model;
+
+public class ItemUnitClass {
+	private String mName;
+	private int mId;
+	private int mPrice;
+	private int mCount;
+	
+	public ItemUnitClass(String aName,int aId,int aPrice,int aCount)
+	{
+		
+	}
+}
